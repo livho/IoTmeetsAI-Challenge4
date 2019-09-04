@@ -30,7 +30,7 @@ debug = True
 # delay times -- different for every sensors group
 delay_am2320_sgp30 = 5  # temp and gas take more frequent measures
 delay_gps = 10
-delay_sds011 = 30  # fan sensor delay should be multiple of 30
+delay_sds011 = 45  # fan sensor delay should be multiple of 30
 delay_ssd1306 = 12  # just for log purpose on the monitor
 
 # LoRa specific parameters
@@ -130,16 +130,24 @@ def build_data_dict(labels, am2320_res = None, sgp30_res = None, gps_res = None,
     if am2320_res is not None:
         data[labels["temperature"]] = am2320_res[0]
         data[labels["humidity"]] = am2320_res[1]
+    else:
+        print("No temp")
     if sgp30_res is not None:
         data[labels["co2"]] = sgp30_res[0]
         data[labels["tvoc"]] = sgp30_res[1]
+    else:
+        print("No co2")
     if gps_res is not None:
         data[labels["gps_longitude"]] = gps_res[0]
         data[labels["gps_latitude"]] = gps_res[1]
         data[labels["gps_altitude"]] = gps_res[2]
+    else:
+        print("No gps")
     if sds011_res is not None:
         data[labels["dust_pm10"]] = sds011_res[0]
         data[labels["dust_pm25"]] = sds011_res[1]
+    else:
+        print("No dust")
 
     return data
 
@@ -152,25 +160,30 @@ if __name__ == '__main__':
 
     # Launch the collect and send data loop
     t = -1
-    am2320, sgp30, gps, sds011, sds011_ok = None, None, None, None, False
+
+    lcd_connection, sds011_ok = None, False
+    
     while True:
-        if debug:
-            print("Current relative time " + str(t))
+        am2320, sgp30, gps, sds011 = None, None, None, None
         time.sleep(1)
         t += 1
+        if debug:
+            print("Current relative time " + str(t))
         if t % delay_am2320_sgp30 == 0:
             am2320 = pycom_monitor.temperature_humidity(n_try_max=10)
             sgp30 = pycom_monitor.co2_tvoc()
         if t % delay_gps == 0:
             gps = pycom_monitor.latitude_longitude_altitude(update_rate=1000)
-        if t % delay_sds011 - 30 == 0:
+        if (t+30) % delay_sds011 == 0:
+            # print("call bootstrap")
             sds011_ok = pycom_monitor.bootstrap_pm10_pm25()
         if t % delay_sds011 == 0 and sds011_ok:
             sds011 = pycom_monitor.read_pm10_pm25()
         if t % delay_ssd1306 == 0:
-            pycom_monitor.print_lcd(str(t))
-        if t % delay_ssd1306 + 2 == 0:
-            pycom_monitor.turn_off_lcd()
+            lcd_connection = pycom_monitor.print_lcd(t)
+        if (t-2) % delay_ssd1306 == 0:
+            pycom_monitor.turn_off_lcd(lcd_connection)
+            lcd_connnection = None
 
         ack = send_lora_gw(
             lora_connection,

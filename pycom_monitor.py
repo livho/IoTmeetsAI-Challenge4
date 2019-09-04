@@ -128,8 +128,10 @@ def bootstrap_pm10_pm25():
     # Turns on fan
     try:
         dust_sensor.wake()
+        # print("dust sensor ")
         return True
     except Exception:
+        # print("can't wake dust sensor")
         return False # check it for controllig TODO
 
 
@@ -153,8 +155,8 @@ def read_pm10_pm25():
     pkt_status = dust_sensor.packet_status
 
     # Stop fan
-    # dust_sensor.sleep()
-    # boost_en.value(0)  # Turns OFF boost converter
+    dust_sensor.sleep()
+    boost_en.value(0)  # Turns OFF boost converter
 
     if status == 'NOK':
         return None
@@ -187,6 +189,12 @@ def print_lcd(msg):
 
     # Update the screen and power it Off
     d.show()
+    print("printing on LCD")
 
-def turn_off_lcd():
-    d.poweroff()
+    return d
+
+def turn_off_lcd(d):
+    try:
+        d.poweroff()
+    except Exception:
+        None
