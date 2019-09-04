@@ -174,7 +174,7 @@ def read_pm10_pm25():
 # 
 #     return d
 
-def print_lcd(msg):
+def print_lcd(msg, t=None, ltemp=False, lco2=False, lgps=False, ldust=False):
     """
 
     :param msg:
@@ -198,7 +198,17 @@ def print_lcd(msg):
 
     # Add text
     # d.text(string=str(msg), x=0, y=0)
-    d.text(str(msg), 0, 10)
+    d.text(str(msg), 0, 0)
+    if t:
+        d.text(str(t), 0, 10)
+    if ltemp:
+        d.text("temp", 0, 20)
+    if lco2:
+        d.text("co2", 32, 20)
+    if lgps:
+        d.text("gps", 0, 30)
+    if ldust:
+        d.text("dust", 32, 30)
 
     # d.text('Welcome', 0, l1_pos)
     # d.text('to IIoT', 0, l2_pos)
@@ -206,7 +216,7 @@ def print_lcd(msg):
     # d.text('school!', 0, l4_pos)
     # Update the screen and power it Off
     d.show()
-    print("printing on LCD")
+    # print("printing on LCD")
 
     # return d
 

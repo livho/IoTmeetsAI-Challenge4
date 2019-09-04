@@ -28,10 +28,10 @@ import pycom_monitor
 debug = True
 
 # delay times -- different for every sensors group
-delay_am2320_sgp30 = 5  # temp and gas take more frequent measures
-delay_gps = 10
+delay_am2320_sgp30 = 10  # temp and gas take more frequent measures
+delay_gps = 20
 delay_sds011 = 45  # fan sensor delay should be multiple of 30
-delay_ssd1306 = 12  # just for log purpose on the monitor
+delay_ssd1306 = 120  # just for log purpose on the monitor
 
 # LoRa specific parameters
 message_type = True  # LoRA confirmable message True or False
@@ -64,12 +64,13 @@ def join_lora_gw(l_conn):
     return s
 
 
-def send_lora_gw(l_conn, s, d):
+def send_lora_gw(l_conn, s, d, t):
     """
     Procedure to send any well-formed dictionary to the LoRA gateway
     :param l_conn: the lora connection object
     :param s: the socket object
     :param d: the dictionary to be converted into CBOR data format
+    :param t: the time offset since starting
     :return:
     """
 
@@ -88,6 +89,16 @@ def send_lora_gw(l_conn, s, d):
     if debug:
         print('Message content: ' + str(msg) +
               ' (length is ' + str(len(msg)) + ' bytes).')
+        ltemp, lco2, lgps, ldust = False, False, False, False
+        if "tm" in d:
+            ltemp = True
+        if "c" in d:
+            lco2 = True
+        if "x" in d:
+            lgps = True
+        if "pm10" in d:
+            ldust = True
+        pycom_monitor.print_lcd(t, len(msg), ltemp, lco2, lgps, ldust)
 
     # Wait until data is sent (max. 10s)
     s.setblocking(True)
@@ -131,23 +142,27 @@ def build_data_dict(labels, am2320_res = None, sgp30_res = None, gps_res = None,
         data[labels["temperature"]] = am2320_res[0]
         data[labels["humidity"]] = am2320_res[1]
     else:
-        print("No temp")
+        if debug:
+            print("No temp")
     if sgp30_res is not None:
         data[labels["co2"]] = sgp30_res[0]
         data[labels["tvoc"]] = sgp30_res[1]
     else:
-        print("No co2")
+        if debug:
+            print("No co2")
     if gps_res is not None:
         data[labels["gps_longitude"]] = gps_res[0]
         data[labels["gps_latitude"]] = gps_res[1]
         data[labels["gps_altitude"]] = gps_res[2]
     else:
-        print("No gps")
+        if debug:
+            print("No gps")
     if sds011_res is not None:
         data[labels["dust_pm10"]] = sds011_res[0]
         data[labels["dust_pm25"]] = sds011_res[1]
     else:
-        print("No dust")
+        if debug:
+            print("No dust")
 
     return data
 
@@ -204,7 +219,8 @@ if __name__ == '__main__':
                 am2320,
                 sgp30,
                 gps,
-                sds011))
+                sds011),
+            t)
 
         if debug and ack is not None and message_type:
             print('Received:' + str(ack) + '\n')
