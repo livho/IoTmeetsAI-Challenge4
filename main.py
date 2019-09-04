@@ -130,24 +130,24 @@ def build_data_dict(labels, am2320_res = None, sgp30_res = None, gps_res = None,
     if am2320_res is not None:
         data[labels["temperature"]] = am2320_res[0]
         data[labels["humidity"]] = am2320_res[1]
-    # else:
-    #     print("No temp")
+    else:
+        print("No temp")
     if sgp30_res is not None:
         data[labels["co2"]] = sgp30_res[0]
         data[labels["tvoc"]] = sgp30_res[1]
-    # else:
-    #     print("No co2")
+    else:
+        print("No co2")
     if gps_res is not None:
         data[labels["gps_longitude"]] = gps_res[0]
         data[labels["gps_latitude"]] = gps_res[1]
         data[labels["gps_altitude"]] = gps_res[2]
-    # else:
-    #     print("No gps")
+    else:
+        print("No gps")
     if sds011_res is not None:
         data[labels["dust_pm10"]] = sds011_res[0]
         data[labels["dust_pm25"]] = sds011_res[1]
-    # else:
-    #     print("No dust")
+    else:
+        print("No dust")
 
     return data
 
@@ -162,9 +162,9 @@ if __name__ == '__main__':
     t = -1
 
     lcd_connection, sds011_ok = None, False
-
-    lcd_connection = pycom_monitor.init_lcd()
-    
+    #my_i2c = pycom_monitor.init_i2c()
+    # lcd_connection = pycom_monitor.init_lcd()#my_i2c)
+    # lcd_connection.poweron()
     while True:
         am2320, sgp30, gps, sds011 = None, None, None, None
         time.sleep(1)
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             print("Current relative time " + str(t))
         if t % delay_am2320_sgp30 == 0:
             am2320 = pycom_monitor.temperature_humidity(n_try_max=10)
-            sgp30 = pycom_monitor.co2_tvoc()
+            sgp30 = pycom_monitor.co2_tvoc() #my_i2c)
         if t % delay_gps == 0:
             gps = pycom_monitor.latitude_longitude_altitude(update_rate=1000)
         if (t+30) % delay_sds011 == 0:
@@ -182,9 +182,9 @@ if __name__ == '__main__':
         if t % delay_sds011 == 0 and sds011_ok:
             sds011 = pycom_monitor.read_pm10_pm25()
         if t % delay_ssd1306 == 0:
-            pycom_monitor.print_lcd(t, lcd_connection)
-        if (t-2) % delay_ssd1306 == 0:
-            pycom_monitor.turn_off_lcd(lcd_connection)
+            pycom_monitor.print_lcd(t)
+        # if (t-2) % delay_ssd1306 == 0:
+        #     pycom_monitor.turn_off_lcd(lcd_connection)
 
         ack = send_lora_gw(
             lora_connection,
