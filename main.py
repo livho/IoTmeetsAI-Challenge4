@@ -30,7 +30,7 @@ debug = True
 # delay times -- different for every sensors group
 delay_am2320_sgp30 = 10  # temp and gas take more frequent measures
 delay_gps = 20
-delay_sds011 = 45  # fan sensor delay should be multiple of 30
+delay_sds011 = 60  # fan sensor delay should be multiple of 30
 delay_ssd1306 = 120  # just for log purpose on the monitor
 
 # LoRa specific parameters
