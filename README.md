@@ -15,7 +15,7 @@ gps | 20
 dust (pm10) | 60
 dust (pm25) | 60
 
-- __Data rate:__ 5 (see [here][1])
+- __Data rate:__ 5 (cf. [here][1])
     - *SF:* 7
     - *BW:* 125
     - *bit/s:* 5470
