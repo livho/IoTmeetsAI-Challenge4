@@ -17,10 +17,10 @@ Presentation | Wed. Lunch - Thurs. Lunch
 
 #### Test Cases *[Eric, Benjamin, ...]*
 
-2. Drone Flight
-3. Public Transportation
-4. Home Electronic Devices (Refrigerators)
-5. (...)
+1. Drone Flight
+1. Public Transportation
+1. Home Electronic Devices (Refrigerators)
+1. (...)
 
 #### Code completion *[Stefano, Oliver]*
 
