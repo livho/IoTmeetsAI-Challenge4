@@ -60,4 +60,6 @@ Presentation | Wed. Lunch - Thurs. Lunch
 
 ### References 
 
+[LoraWAN data rates](https://blog.dbrgn.ch/2017/6/23/lorawan-data-rates/)
+
 [1]: https://blog.dbrgn.ch/2017/6/23/lorawan-data-rates/
