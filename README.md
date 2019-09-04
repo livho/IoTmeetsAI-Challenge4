@@ -24,18 +24,18 @@ Presentation | Wed. Lunch - Thurs. Lunch
 
 #### Code completion *[Stefano, Oliver]*
 
-7. Transmission intervals need to be defined
-8. Measuring intervals need to be defined
-  * Temperature
-  * Humidity
-  * GPS
-  * Air Quality
+1. Transmission intervals need to be defined
+1. Measuring intervals need to be defined
+    - Temperature
+    - Humidity
+    - GPS
+    - Air Quality
 
 #### Presentation *[Nasrin, Mohammad, ...]*
 
-8. Storyline
-9. Slide deck
-10. Data Interface
+1. Storyline
+1. Slide deck
+1. Data Interface
 
 ### First discussion (Monday)
 
