@@ -165,33 +165,54 @@ def read_pm10_pm25():
     else:
         return dust_sensor.pm10, dust_sensor.pm25
 
+def init_lcd():
+    d = None
+    while d == None:
+        i2c = I2C(0, I2C.MASTER)
+        i2c.init(I2C.MASTER, baudrate=100000)
 
-def print_lcd(msg):
+        #Initialize the reset pin
+        res_pin = Pin('P11', mode=Pin.OUT)
+
+        #Initialize the SSD1306 display
+        d = ssd1306.SSD1306_I2C(64, 48, i2c, res=res_pin)
+
+    return d
+
+
+def print_lcd(msg, d):
     """
 
     :param msg:
     :return:
     """
     i2c = init_i2c()
-
-    # Initialize the reset pin
+# 
+    # # Initialize the reset pin
     res_pin = Pin('P11', mode=Pin.OUT)
-
-    # Initialize the SSD1306 display
+# 
+    # # Initialize the SSD1306 display
     d = ssd1306.SSD1306_I2C(64, 48, i2c, res=res_pin)
+    l1_pos = 0  #1st line
+    l2_pos = 10 #2nd line
+    l3_pos = 20 #3rd line
+    l4_pos = 30 #4th line
 
     # Power on and clear screen
     d.poweron()
     d.fill(0)
 
     # Add text
-    d.text(string=str(msg), x=0, y=0)
+    # d.text(string=str(msg), x=0, y=0)
+    # d.text(str(msg), 0, 10)
 
+    d.text('Welcome', 0, l1_pos)
+    d.text('to IIoT', 0, l2_pos)
+    d.text('Summer', 0, l3_pos)
+    d.text('school!', 0, l4_pos)
     # Update the screen and power it Off
     d.show()
     print("printing on LCD")
-
-    return d
 
 def turn_off_lcd(d):
     try:

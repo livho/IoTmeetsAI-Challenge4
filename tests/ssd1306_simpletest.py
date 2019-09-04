@@ -20,7 +20,7 @@
 import time
 from machine import I2C
 from machine import Pin
-import ssd1306
+from lib import ssd1306
 
 #Initialize the I2C bus
 i2c = I2C(0, I2C.MASTER)
