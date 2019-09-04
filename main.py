@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 # Copyright (C) 2019 IoT Meets AI Team Challenge 4
 #
 # This program is free software: you can redistribute it and/or modify
@@ -115,7 +116,7 @@ def build_data_dict(labels, am2320_res = None, sgp30_res = None, gps_res = None,
     data = {}
     if am2320_res is not None:
         data[labels["temperature"]] = am2320_res[0]
-        data[labels["humidity"]]: am2320_res[1]
+        data[labels["humidity"]] = am2320_res[1]
     if sgp30_res is not None:
         data[labels["co2"]] = sgp30_res[0]
         data[labels["tvoc"]] = sgp30_res[1]

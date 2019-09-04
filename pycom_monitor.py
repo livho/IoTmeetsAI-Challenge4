@@ -92,7 +92,7 @@ def latitude_longitude_altitude(update_rate = 1000):
     gps.send_command('PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 
     # Set update rate
-    gps.send_command(f'PMTK220,{update_rate}')
+    gps.send_command('PMTK220,' + update_rate)
 
     # Make sure to call gps.update() as often as possible to prevent loss
     # of data.
@@ -163,6 +163,11 @@ def read_pm10_pm25():
 
 
 def print_lcd(msg):
+    """
+
+    :param msg:
+    :return:
+    """
     i2c = init_i2c()
 
     # Initialize the reset pin
