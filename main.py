@@ -31,13 +31,13 @@ debug = True
 delay_am2320_sgp30 = 5  # temp and gas take more frequent measures
 delay_gps = 10
 delay_sds011 = 30  # fan sensor delay should be multiple of 30
-delay_ssd1306 = 120  # just for log purpose on the monitor
+delay_ssd1306 = 12  # just for log purpose on the monitor
 
 # LoRa specific parameters
 message_type = True  # LoRA confirmable message True or False
 data_rate = 5  # Data rate of the lora connection
 data_send_timeout = 10
-lora_mode = LoRa.SLEEP  # Power mode LoRa.ALWAYS_ON, LoRa.TX_ONLY or LoRa.SLEEP
+lora_mode = LoRa.TX_ONLY  # Power mode LoRa.ALWAYS_ON, LoRa.TX_ONLY or LoRa.SLEEP
 
 # Credentials for IMT Server
 app_eui = b'\x48\x62\x66\x27\x56\x63\x68\x53'
@@ -151,9 +151,11 @@ if __name__ == '__main__':
     soc = join_lora_gw(lora_connection)
 
     # Launch the collect and send data loop
-    t = 0
-    am2320, sgp30, gps, sds011 = None, None, None, None
+    t = -1
+    am2320, sgp30, gps, sds011, sds011_ok = None, None, None, None, False
     while True:
+        if debug:
+            print("Current relative time " + str(t))
         time.sleep(1)
         t += 1
         if t % delay_am2320_sgp30 == 0:
@@ -166,7 +168,9 @@ if __name__ == '__main__':
         if t % delay_sds011 == 0 and sds011_ok:
             sds011 = pycom_monitor.read_pm10_pm25()
         if t % delay_ssd1306 == 0:
-            pycom_monitor.print_lcd(time.ctime(time.time()))
+            pycom_monitor.print_lcd(str(t))
+        if t % delay_ssd1306 + 2 == 0:
+            pycom_monitor.turn_off_lcd()
 
         ack = send_lora_gw(
             lora_connection,
@@ -188,5 +192,5 @@ if __name__ == '__main__':
                 gps,
                 sds011))
 
-        if debug and ack is not None:
+        if debug and ack is not None and message_type:
             print('Received:' + str(ack) + '\n')

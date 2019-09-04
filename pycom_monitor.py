@@ -45,14 +45,16 @@ def temperature_humidity(n_try_max = 10):
     success = False
     n_try = 0
 
+    t,h = None, None
     while not success and n_try < n_try_max:
         try:
+            t = am.temperature 
+            h = am.relative_humidity
             success = True
-            return am.temperature, am.relative_humidity
         except Exception:
             n_try += 1
 
-    return None
+    return t, h 
 
 
 def co2_tvoc():
@@ -119,7 +121,7 @@ def bootstrap_pm10_pm25():
     boost_en = Pin('P8', mode=Pin.OUT)
 
     # Stop fan
-    dust_sensor.sleep()
+    # dust_sensor.sleep()
 
     # Turns ON boost converter
     boost_en.value(1)
@@ -128,7 +130,7 @@ def bootstrap_pm10_pm25():
         dust_sensor.wake()
         return True
     except Exception:
-        return False
+        return False # check it for controllig TODO
 
 
 def read_pm10_pm25():
@@ -151,8 +153,8 @@ def read_pm10_pm25():
     pkt_status = dust_sensor.packet_status
 
     # Stop fan
-    dust_sensor.sleep()
-    boost_en.value(0)  # Turns OFF boost converter
+    # dust_sensor.sleep()
+    # boost_en.value(0)  # Turns OFF boost converter
 
     if status == 'NOK':
         return None
@@ -185,4 +187,6 @@ def print_lcd(msg):
 
     # Update the screen and power it Off
     d.show()
+
+def turn_off_lcd():
     d.poweroff()
