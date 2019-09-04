@@ -28,9 +28,9 @@ import pycom_monitor
 debug = True
 
 # delay times -- different for every sensors group
-delay_am2320_sgp30 = 1  # environment take more frequent measures
+delay_am2320_sgp30 = 5  # temp and gas take more frequent measures
 delay_gps = 10
-delay_sds011 = 30  # should be multiple of 30
+delay_sds011 = 30  # fan sensor delay should be multiple of 30
 delay_ssd1306 = 120  # just for log purpose on the monitor
 
 # LoRa specific parameters
@@ -72,6 +72,10 @@ def send_lora_gw(l_conn, s, d):
     :param d: the dictionary to be converted into CBOR data format
     :return:
     """
+
+    if d == {}:
+        return None
+
     # Check the connection status before to send
     if debug:
         print('Waiting for a LoRa connection...')
@@ -184,5 +188,5 @@ if __name__ == '__main__':
                 gps,
                 sds011))
 
-        if debug:
+        if debug and ack is not None:
             print('Received:' + str(ack) + '\n')

@@ -92,7 +92,7 @@ def latitude_longitude_altitude(update_rate = 1000):
     gps.send_command('PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
 
     # Set update rate
-    gps.send_command('PMTK220,' + update_rate)
+    gps.send_command('PMTK220,' + str(update_rate))
 
     # Make sure to call gps.update() as often as possible to prevent loss
     # of data.
