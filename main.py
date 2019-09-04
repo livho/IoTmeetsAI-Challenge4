@@ -105,6 +105,7 @@ def send_lora_gw(l_conn, s, d):
         rec = s.recv(64)
     except TimeoutError:
         if debug:
+            print(d)
             print("ack has not been received")
 
     return rec
