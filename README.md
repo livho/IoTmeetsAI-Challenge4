@@ -3,6 +3,22 @@
 
 ## Goal: Assess Air Quality
 
+### Test configuration
+
+Value | sending interval (s)
+---|---:
+temperature | 10
+humidity | 10
+co2 | 10
+tvoc | 10
+gps | 20
+dust (pm10) | 60
+dust (pm25) | 60
+
+- __Data rate:__ 5
+    - *SF:* 7
+    - *BW:* 125
+    - *bit/s:* 5470
 
 ### Timeline
 
