@@ -15,7 +15,7 @@ gps | 20
 dust (pm10) | 60
 dust (pm25) | 60
 
-- __Data rate:__ 5
+- __Data rate:__ 5 (see [here][1])
     - *SF:* 7
     - *BW:* 125
     - *bit/s:* 5470
@@ -57,3 +57,7 @@ Presentation | Wed. Lunch - Thurs. Lunch
 
 ![Design Idea](images/IMG_1.jpg)
 ![Stress in presentation](images/IMG_2.jpg)
+
+### References 
+
+[1]: https://blog.dbrgn.ch/2017/6/23/lorawan-data-rates/
