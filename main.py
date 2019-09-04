@@ -76,6 +76,7 @@ def send_lora_gw(l_conn, s, d):
     if debug:
         print('Waiting for a LoRa connection...')
         while not l_conn.has_joined():
+            time.sleep(1)
             print('Connected.')
 
     # Convert the dictionary message into CBOR
@@ -99,7 +100,14 @@ def send_lora_gw(l_conn, s, d):
         if debug:
             print('Failed to send message!')
 
-    return s.recv(64)
+    rec = None
+    try:
+        rec = s.recv(64)
+    except TimeoutError:
+        if debug:
+            print("ack has not been received")
+
+    return rec
 
 
 def build_data_dict(labels, am2320_res = None, sgp30_res = None, gps_res = None,
