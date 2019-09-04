@@ -19,21 +19,24 @@ import socket
 import time
 
 import cbor
-import pycom
 from network import LoRa
 
-import monitor
+import pycom_monitor
 
 # Hyper Parameters
 debug = True
-rounds = 10  # Running rounds for the collect and send loop
-# LoRA message type may be confirmable or not-confirmable
-message_type = True
+
+# delay times -- different for every sensors group
+delay_am2320_sgp30 = 1  # environment take more frequent measures
+delay_gps = 10
+delay_sds011 = 30  # should be multiple of 30
+delay_ssd1306 = 120  # just for log purpose on the monitor
+
+# LoRa specific parameters
+message_type = True  # LoRA confirmable message True or False
 data_rate = 5  # Data rate of the lora connection
 data_send_timeout = 10
-# Power mode may be LoRa.ALWAYS_ON, LoRa.TX_ONLY or LoRa.SLEEP
-lora_mode = LoRa.SLEEP
-delay = 1  # Loop collect/send message delay (in secs)
+lora_mode = LoRa.SLEEP  # Power mode LoRa.ALWAYS_ON, LoRa.TX_ONLY or LoRa.SLEEP
 
 # Credentials for IMT Server
 app_eui = b'\x48\x62\x66\x27\x56\x63\x68\x53'
@@ -60,18 +63,6 @@ def join_lora_gw(l_conn):
     return s
 
 
-def check_connection(l_conn):
-    """
-    Check on the connection with the gateway and switch on or off the on-board
-    LED acconrdingly
-    :param l_conn:
-    :return:
-    """
-    while not l_conn.has_joined():
-        pycom.rgbled(0x43142f)  # LED Violet
-    pycom.rgbled(0x000000)  # LED OFF
-
-
 def send_lora_gw(l_conn, s, d):
     """
     Procedure to send any well-formed dictionary to the LoRA gateway
@@ -80,10 +71,11 @@ def send_lora_gw(l_conn, s, d):
     :param d: the dictionary to be converted into CBOR data format
     :return:
     """
+    # Check the connection status before to send
     if debug:
         print('Waiting for a LoRa connection...')
-        check_connection(l_conn)
-        print('Connected.')
+        while not l_conn.has_joined():
+            print('Connected.')
 
     # Convert the dictionary message into CBOR
     msg = cbor.dumps(d)
@@ -97,41 +89,45 @@ def send_lora_gw(l_conn, s, d):
 
     if debug:
         print('Sending message...')
-    pycom.rgbled(0x00007f)  # LED Blue
     try:
         s.send(msg)
-    except:
+        s.setblocking(False)
+        if debug:
+            print('Message sent!')
+    except Exception:
         if debug:
             print('Failed to send message!')
-
-    s.setblocking(False)
-    if debug:
-        print('Message sent!')
-    pycom.rgbled(0x000000)  # LED OFF
 
     return s.recv(64)
 
 
-def build_data_dict():
-    res_temp_humidity = monitor.get_temp_humidity()
-    res_gps = monitor.get_gps()
-    res_pm10_pm25 = monitor.get_pm10_pm25()
-    res_co2_tvoc = monitor.co2_tvoc()
-    return {
-        # get me the current time
-        "ts": time.ticks_ms(),
-        # get me location
-        "x": res_gps[0] if res_gps is not None else 0,
-        "y": res_gps[1] if res_gps is not None else 0,
-        "z": res_gps[2] if res_gps is not None else 0,
-        # get me raw data
-        "tm": res_temp_humidity[0] if res_temp_humidity is not None else 0,
-        "hm": res_temp_humidity[1] if res_temp_humidity is not None else 0,
-        "p1": res_pm10_pm25[0] if res_pm10_pm25 is not None else 0,
-        "p2": res_pm10_pm25[1] if res_pm10_pm25 is not None else 0,
-        "co": res_co2_tvoc[0] if res_co2_tvoc is not None else 0,
-        "tv": res_co2_tvoc[1] if res_co2_tvoc is not None else 0
-    }
+def build_data_dict(labels, am2320_res = None, sgp30_res = None, gps_res = None,
+                    sds011_res = None):
+    """
+    Produce a dictionary of measurements from the board sensors
+    :param labels:
+    :param am2320_res:
+    :param sgp30_res:
+    :param gps_res:
+    :param sds011_res:
+    :return:
+    """
+    data = {}
+    if am2320_res is not None:
+        data[labels["temperature"]] = am2320_res[0]
+        data[labels["humidity"]]: am2320_res[1]
+    if sgp30_res is not None:
+        data[labels["co2"]] = sgp30_res[0]
+        data[labels["tvoc"]] = sgp30_res[1]
+    if gps_res is not None:
+        data[labels["gps_longitude"]] = gps_res[0]
+        data[labels["gps_latitude"]] = gps_res[1]
+        data[labels["gps_altitude"]] = gps_res[2]
+    if sds011_res is not None:
+        data[labels["dust_pm10"]] = sds011_res[0]
+        data[labels["dust_pm25"]] = sds011_res[1]
+
+    return data
 
 
 if __name__ == '__main__':
@@ -140,12 +136,43 @@ if __name__ == '__main__':
     lora_connection.power_mode(lora_mode)
     soc = join_lora_gw(lora_connection)
 
-    # Collect and Send data
-    i = 0
-    while i < rounds:
-        data_dict = build_data_dict()
-        ack = send_lora_gw(lora_connection, soc, data_dict)
+    # Launch the collect and send data loop
+    t = 0
+    am2320, sgp30, gps, sds011 = None, None, None, None
+    while True:
+        time.sleep(1)
+        t += 1
+        if t % delay_am2320_sgp30 == 0:
+            am2320 = pycom_monitor.temperature_humidity(n_try_max=10)
+            sgp30 = pycom_monitor.co2_tvoc()
+        if t % delay_gps == 0:
+            gps = pycom_monitor.latitude_longitude_altitude(update_rate=1000)
+        if t % delay_sds011 - 30 == 0:
+            sds011_ok = pycom_monitor.bootstrap_pm10_pm25()
+        if t % delay_sds011 == 0 and sds011_ok:
+            sds011 = pycom_monitor.read_pm10_pm25()
+        if t % delay_ssd1306 == 0:
+            pycom_monitor.print_lcd(time.ctime(time.time()))
+
+        ack = send_lora_gw(
+            lora_connection,
+            soc,
+            build_data_dict({
+                "timestamp": "ts",
+                "temperature": "tm",
+                "humidity": "hu",
+                "co2": "c",
+                "tvoc": "tv",
+                "gps_longitude": "x",
+                "gps_latitude": "y",
+                "gps_altitude": "z",
+                "dust_pm10": "pm10",
+                "dust_pm25": "pm25"
+            },
+                am2320,
+                sgp30,
+                gps,
+                sds011))
+
         if debug:
             print('Received:' + str(ack) + '\n')
-        time.sleep(delay)
-        i += 1
