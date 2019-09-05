@@ -16,10 +16,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import time
 from machine import I2C, Pin, UART
 
 from lib import adafruit_am2320, adafruit_gps, sds011, adafruit_sgp30, ssd1306
 
+baseline_time = 0
+sgp30 = None
+gps = None
 
 def init_i2c(baudrate = 100000):
     """
@@ -56,12 +60,14 @@ def temperature_humidity(n_try_max = 10):
 
     return t, h 
 
-
-def co2_tvoc(): #i2c):
+def init_co2_tvoc():
     """
     Retrieve CO2 and TVOC from a pycom board
     :return: the co2 and tvoc
     """
+    global baseline_time
+    global sgp30
+
     i2c = init_i2c()
 
     # Create library object on our I2C port
@@ -70,14 +76,68 @@ def co2_tvoc(): #i2c):
     # Initialize SGP-30 internal drift compensation algorithm.
     sgp30.iaq_init()
 
+    for idx in range(30):
+        print('co2eq = ' + str(sgp30.co2eq) + ' ppm \t tvoc = ' + str(sgp30.tvoc) + ' ppb')
+        time.sleep(1)
+
+    f_co2 = open('co2eq_baseline.txt', 'w')
+    f_tvoc = open('tvoc_baseline.txt', 'w')
+
+    f_co2.write(str(sgp30.baseline_co2eq))
+    f_tvoc.write(str(sgp30.baseline_tvoc))
+
+    f_co2.close()
+    f_tvoc.close()
+    
+
+def co2_tvoc(): #i2c):
+    """
+    Retrieve CO2 and TVOC from a pycom board
+    :return: the co2 and tvoc
+    """
+    global baseline_time
+    global sgp30
+
+    #i2c = init_i2c()
+
+    # Create library object on our I2C port
+    #sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
+
+    # Initialize SGP-30 internal drift compensation algorithm.
+    #sgp30.iaq_init()
+
+    # try:
+    #     f_co2 = open('co2eq_baseline.txt', 'r')
+    #     f_tvoc = open('tvoc_baseline.txt', 'r')
+# 
+    #     co2_baseline = int(f_co2.read())
+    #     tvoc_baseline = int(f_tvoc.read())
+    #     #Use them to calibrate the sensor
+    #     sgp30.set_iaq_baseline(co2_baseline, tvoc_baseline)
+# 
+    #     f_co2.close()
+    #     f_tvoc.close()
+    # except:
+    #     print('Impossible to read SGP30 baselines!')
+
+    if(time.time() - baseline_time >= 3600):
+        # print('Saving baseline!')
+        baseline_time = time.time()
+
+        f_co2 = open('co2eq_baseline.txt', 'w')
+        f_tvoc = open('tvoc_baseline.txt', 'w')
+
+        f_co2.write(str(sgp30.baseline_co2eq))
+        f_tvoc.write(str(sgp30.baseline_tvoc))
+
+        f_co2.close()
+        f_tvoc.close()
+    # print('co2eq = ' + str(sgp30.co2eq) + ' ppm \t tvoc = ' + str(sgp30.tvoc) + ' ppb')
+
     return sgp30.co2eq, sgp30.tvoc
 
-
-def latitude_longitude_altitude(update_rate = 1000):
-    """
-    Retrieve location data from a pycom board
-    :return: x, y and z absolute coordinates
-    """
+def gps_init(update_rate = 1000):
+    global gps
     # Initialize UART
     uart = UART(1, baudrate=9600, timeout_chars=3000, pins=('P4', 'P3'))
 
@@ -95,6 +155,30 @@ def latitude_longitude_altitude(update_rate = 1000):
 
     # Set update rate
     gps.send_command('PMTK220,' + str(update_rate))
+
+def latitude_longitude_altitude(update_rate = 1000):
+    """
+    Retrieve location data from a pycom board
+    :return: x, y and z absolute coordinates
+    """
+    global gps
+    # # Initialize UART
+    # uart = UART(1, baudrate=9600, timeout_chars=3000, pins=('P4', 'P3'))
+# 
+    # # Instanciate a Pin object linked to the enable pin of the GPS
+    # en_pin = Pin('P23', mode=Pin.OUT)
+# 
+    # # Instantiaite a GPS object
+    # gps = adafruit_gps.GPS(uart, en_pin)
+# 
+    # # Turns ON GPS (turn off using gps.disable())
+    # gps.enable()
+# 
+    # # Turn on the basic GGA and RMC info (what you typically want)
+    # gps.send_command('PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+# 
+    # # Set update rate
+    # gps.send_command('PMTK220,' + str(update_rate))
 
     # Make sure to call gps.update() as often as possible to prevent loss
     # of data.

@@ -45,6 +45,8 @@ app_key = binascii.unhexlify(
     '11 22 33 44 55 66 77 88 11 22 33 44 55 66 77 88'.replace(' ', ''))
 
 
+
+
 def join_lora_gw(l_conn):
     """
     Procedure to create the socket to the LoRA gateway.
@@ -180,6 +182,10 @@ if __name__ == '__main__':
     #my_i2c = pycom_monitor.init_i2c()
     # lcd_connection = pycom_monitor.init_lcd()#my_i2c)
     # lcd_connection.poweron()
+
+    pycom_monitor.gps_init()
+    pycom_monitor.init_co2_tvoc()
+
     while True:
         am2320, sgp30, gps, sds011 = None, None, None, None
         time.sleep(1)

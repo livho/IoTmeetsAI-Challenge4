@@ -22,7 +22,7 @@
 
 import time
 from machine import I2C
-import adafruit_sgp30
+from lib import adafruit_sgp30
 
 #Initialize I2C bus
 i2c = I2C(0, I2C.MASTER)
