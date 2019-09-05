@@ -188,6 +188,7 @@ if __name__ == '__main__':
 
     while True:
         am2320, sgp30, gps, sds011 = None, None, None, None
+        pycom_monitor.gps.update()
         time.sleep(1)
         t += 1
         if debug:

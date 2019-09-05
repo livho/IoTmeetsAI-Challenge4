@@ -183,10 +183,18 @@ def latitude_longitude_altitude(update_rate = 1000):
     # Make sure to call gps.update() as often as possible to prevent loss
     # of data.
     # This returns a bool that's true if it parsed new data.
-    if gps.update() and gps.has_fix:
+    print("got here !!!!!!!!!!!!!!!! {}".format(gps.has_fix))
+    gps.update()
+    # if gps.update() and gps.has_fix:
+    print('long {}, lat {}, alt {}'.format(gps.longitude, gps.latitude, gps.altitude_m))
+    if gps.longitude and gps.latitude and gps.altitude_m:
         return gps.longitude, gps.latitude, gps.altitude_m
     else:
         return None
+    #if gps.has_fix:
+    #    return gps.longitude, gps.latitude, gps.altitude_m
+    #else:
+    #    return None
 
 
 def bootstrap_pm10_pm25():

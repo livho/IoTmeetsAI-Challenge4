@@ -24,7 +24,7 @@ from machine import UART
 from machine import Pin
 import utime as time
 
-import adafruit_gps
+from lib import adafruit_gps
 
 #Initialize UART
 uart = UART(1, baudrate=9600, timeout_chars=3000, pins=('P4', 'P3'))
